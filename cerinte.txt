@@ -1,0 +1,48 @@
+TEMA EDA CU STREAMLIT
+
+CERINTA 1: 
+
+• Încărcare fișier CSV sau Excel
+• Validare că fișierul a fost citit corect
+• Afișare mesaj de confirmare
+• Afișare primele 10 rânduri din dataset
+• Creare slidere pentru filtrare coloane numerice
+• Creare multiselect pentru filtrare coloane categorice
+• Afișare număr rânduri înainte și după filtrare
+• Afișare dataframe filtrat
+
+CERINTA 2: 
+
+• Afișare număr rânduri și coloane
+• Afișare tipuri de date pentru fiecare coloană
+• Identificare coloane cu valori lipsă
+• Calcul procent valori lipsă per coloană
+• Creare grafic pentru vizualizarea valorilor lipsă
+• Afișare statistici descriptive pentru coloane numerice (mean, median, std, min, max, quartile)
+
+
+CERINTA 3: 
+
+• Selectare coloană numerică de către utilizator
+• Creare histogram interactiv
+• Adăugare slider pentru numărul de bins (10-100)
+• Creare box plot pentru aceeași coloană
+• Calcul și afișare: medie, mediană, deviație standard
+
+CERINTA 4: 
+
+• Identificare automată coloane categorice
+• Selectare coloană categorică de către utilizator
+• Creare count plot (bar chart) cu frecvențe
+• Afișare tabel cu frecvențe absolute și procente
+
+CERINTA 5: 
+
+• Calcul matrice de corelație pentru coloane numerice
+• Creare heatmap pentru vizualizarea corelațiilor
+• Selectare două variabile numerice
+• Creare scatter plot pentru cele două variabile
+• Calcul și afișare coeficient de corelație Pearson
+• Utilizare metoda IQR pentru detecție outlieri
+• Afișare număr și procent outlieri pentru fiecare coloană numerică
+• Vizualizare outlieri pe grafic
