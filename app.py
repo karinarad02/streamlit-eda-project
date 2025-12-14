@@ -55,27 +55,29 @@ if uploaded_file:
         # TAB 1 – Curățarea datelor
         # =========================
         with tab1:
-            st.subheader("Valori lipsă – înainte")
-            st.write(df_clean.isnull().sum())
-
-            # completare valori lipsă
+            # Numerice → media
             for col in df_clean.select_dtypes(include=np.number).columns:
-                df_clean[col] = df_clean[col].fillna(df_clean[col].median())
+                mean_value = df_clean[col].mean()
+                df_clean[col] = df_clean[col].fillna(mean_value)
 
+            # Categorice → valoarea cea mai frecventă (moda)
             for col in df_clean.select_dtypes(exclude=np.number).columns:
-                df_clean[col] = df_clean[col].fillna("Necunoscut")
+                if not df_clean[col].mode().empty:
+                    mode_value = df_clean[col].mode()[0]
+                    df_clean[col] = df_clean[col].fillna(mode_value)
 
-            st.subheader("Valori lipsă – după")
+            st.subheader("Număr valori lipsă (după curățare)")
             st.write(df_clean.isnull().sum())
 
             st.subheader("Preview date curățate")
             st.dataframe(df_clean.head(10))
 
-
         # =========================
-        # TAB 2 – Detectare outlieri
+        # TAB 2 – Detectare și corectare outlieri (IQR)
         # =========================
         with tab2:
+            st.subheader("Detectare și corectare outlieri (metoda IQR)")
+
             numeric_cols = df_clean.select_dtypes(include=np.number).columns.tolist()
             outlier_summary = {}
 
@@ -83,20 +85,31 @@ if uploaded_file:
                 Q1 = df_clean[col].quantile(0.25)
                 Q3 = df_clean[col].quantile(0.75)
                 IQR = Q3 - Q1
+
                 lower = Q1 - 1.5 * IQR
                 upper = Q3 + 1.5 * IQR
 
-                outliers = df_clean[(df_clean[col] < lower) | (df_clean[col] > upper)]
+                # Detectare outlieri
+                outliers_mask = (df_clean[col] < lower) | (df_clean[col] > upper)
+                outlier_count = outliers_mask.sum()
+
+                # Corectare outlieri (winsorizare)
+                df_clean.loc[df_clean[col] < lower, col] = lower
+                df_clean.loc[df_clean[col] > upper, col] = upper
+
                 outlier_summary[col] = {
-                    "Număr outlieri": len(outliers),
-                    "Procent (%)": round(len(outliers) / len(df_clean) * 100, 2)
+                    "Număr outlieri corectați": int(outlier_count),
+                    "Procent (%)": round(outlier_count / len(df_clean) * 100, 2),
+                    "Limită inferioară": round(lower, 2),
+                    "Limită superioară": round(upper, 2)
                 }
 
             st.dataframe(pd.DataFrame(outlier_summary).T)
 
+            st.success("✔ Outlierii au fost detectați și corectați folosind metoda IQR.")
 
         # =========================
-        # TAB 3 – Prelucrare text
+        # TAB 3 – Prelucrare text + Label Encoding
         # =========================
         with tab3:
             cat_cols = df_clean.select_dtypes(exclude=np.number).columns.tolist()
@@ -104,6 +117,7 @@ if uploaded_file:
             if cat_cols:
                 text_col = st.selectbox("Selectează coloană text", cat_cols)
 
+                # Prelucrare text
                 df_clean[text_col] = (
                     df_clean[text_col]
                     .str.lower()
@@ -113,9 +127,17 @@ if uploaded_file:
 
                 st.subheader("După procesare text")
                 st.dataframe(df_clean[[text_col]].head(10))
+
+                # Label Encoding
+                from sklearn.preprocessing import LabelEncoder
+                le = LabelEncoder()
+                df_clean[text_col + "_encoded"] = le.fit_transform(df_clean[text_col])
+
+                st.subheader("Label Encoding")
+                st.dataframe(df_clean[[text_col, text_col + "_encoded"]].head(10))
+
             else:
                 st.info("Nu există coloane categorice.")
-
 
         # =========================
         # TAB 4 – Standardizare & normalizare
@@ -141,7 +163,6 @@ if uploaded_file:
                         [scale_col, scale_col + "_standardizat", scale_col + "_normalizat"]
                     ].head(10)
                 )
-
 
         # =========================
         # CERINTA 2 – Info despre dataset
