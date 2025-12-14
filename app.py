@@ -39,118 +39,109 @@ if uploaded_file:
         st.dataframe(df.head(10))
 
         # =========================
-        # ETAPA 2 – Curățarea datelor
+        # ETAPE DUPĂ ÎNCĂRCARE – TABURI
         # =========================
 
-        st.header("1.2. Curățarea datelor")
-
-        st.subheader("Valori lipsă – înainte de curățare")
-        st.write(df.isnull().sum())
+        tab1, tab2, tab3, tab4 = st.tabs([
+            "1.1 Curățarea datelor",
+            "1.2 Detectare outlieri",
+            "1.3 Prelucrare text",
+            "1.4 Standardizare & normalizare"
+        ])
 
         df_clean = df.copy()
 
-        # completare valori lipsă
-        for col in df_clean.select_dtypes(include=np.number).columns:
-            df_clean[col] = df_clean[col].fillna(df_clean[col].median())
+        # =========================
+        # TAB 1 – Curățarea datelor
+        # =========================
+        with tab1:
+            st.subheader("Valori lipsă – înainte")
+            st.write(df_clean.isnull().sum())
 
-        for col in df_clean.select_dtypes(exclude=np.number).columns:
-            df_clean[col] = df_clean[col].fillna("Necunoscut")
+            # completare valori lipsă
+            for col in df_clean.select_dtypes(include=np.number).columns:
+                df_clean[col] = df_clean[col].fillna(df_clean[col].median())
 
-        st.subheader("Valori lipsă – după curățare")
-        st.write(df_clean.isnull().sum())
+            for col in df_clean.select_dtypes(exclude=np.number).columns:
+                df_clean[col] = df_clean[col].fillna("Necunoscut")
 
-        st.subheader("Preview date curățate")
-        st.dataframe(df_clean.head(10))
+            st.subheader("Valori lipsă – după")
+            st.write(df_clean.isnull().sum())
+
+            st.subheader("Preview date curățate")
+            st.dataframe(df_clean.head(10))
+
 
         # =========================
-        # ETAPA 3 – Detectarea valorilor anormale (IQR)
+        # TAB 2 – Detectare outlieri
         # =========================
+        with tab2:
+            numeric_cols = df_clean.select_dtypes(include=np.number).columns.tolist()
+            outlier_summary = {}
 
-        st.header("1.3. Detectarea valorilor anormale")
+            for col in numeric_cols:
+                Q1 = df_clean[col].quantile(0.25)
+                Q3 = df_clean[col].quantile(0.75)
+                IQR = Q3 - Q1
+                lower = Q1 - 1.5 * IQR
+                upper = Q3 + 1.5 * IQR
 
-        numeric_cols = df_clean.select_dtypes(include=np.number).columns.tolist()
-        outlier_summary = {}
+                outliers = df_clean[(df_clean[col] < lower) | (df_clean[col] > upper)]
+                outlier_summary[col] = {
+                    "Număr outlieri": len(outliers),
+                    "Procent (%)": round(len(outliers) / len(df_clean) * 100, 2)
+                }
 
-        for col in numeric_cols:
-            Q1 = df_clean[col].quantile(0.25)
-            Q3 = df_clean[col].quantile(0.75)
-            IQR = Q3 - Q1
-            lower = Q1 - 1.5 * IQR
-            upper = Q3 + 1.5 * IQR
-            outliers = df_clean[(df_clean[col] < lower) | (df_clean[col] > upper)]
-            outlier_summary[col] = {
-                "Număr outlieri": len(outliers),
-                "Procent": round(len(outliers) / len(df_clean) * 100, 2)
-            }
+            st.dataframe(pd.DataFrame(outlier_summary).T)
 
-        st.dataframe(pd.DataFrame(outlier_summary).T)
-
-        # =========================
-        # ETAPA 4 – Prelucrarea șirurilor de caractere
-        # =========================
-
-        st.header("1.4. Prelucrarea șirurilor de caractere")
-
-        cat_cols = df_clean.select_dtypes(exclude=np.number).columns.tolist()
-
-        if cat_cols:
-            text_col = st.selectbox("Selectează coloană text", cat_cols)
-
-            df_clean[text_col] = (
-                df_clean[text_col]
-                .str.lower()
-                .str.strip()
-                .str.replace(" ", "_", regex=False)
-            )
-
-            st.subheader("Date după procesare text")
-            st.dataframe(df_clean[[text_col]].head(10))
 
         # =========================
-        # ETAPA 5 – Standardizare și normalizare
+        # TAB 3 – Prelucrare text
         # =========================
+        with tab3:
+            cat_cols = df_clean.select_dtypes(exclude=np.number).columns.tolist()
 
-        st.header("1.5. Standardizare și normalizare")
+            if cat_cols:
+                text_col = st.selectbox("Selectează coloană text", cat_cols)
 
-        if numeric_cols:
-            scale_col = st.selectbox("Selectează coloană numerică", numeric_cols)
+                df_clean[text_col] = (
+                    df_clean[text_col]
+                    .str.lower()
+                    .str.strip()
+                    .str.replace(" ", "_", regex=False)
+                )
 
-            scaler = StandardScaler()
-            df_clean[scale_col + "_standardizat"] = scaler.fit_transform(
-                df_clean[[scale_col]]
-            )
+                st.subheader("După procesare text")
+                st.dataframe(df_clean[[text_col]].head(10))
+            else:
+                st.info("Nu există coloane categorice.")
 
-            df_clean[scale_col + "_normalizat"] = (
-                df_clean[scale_col] - df_clean[scale_col].min()
-            ) / (
-                df_clean[scale_col].max() - df_clean[scale_col].min()
-            )
 
-            st.subheader("Rezultat standardizare & normalizare")
-            st.dataframe(df_clean[[scale_col, scale_col + "_standardizat", scale_col + "_normalizat"]].head(10))
+        # =========================
+        # TAB 4 – Standardizare & normalizare
+        # =========================
+        with tab4:
+            if numeric_cols:
+                scale_col = st.selectbox("Selectează coloană numerică", numeric_cols)
 
-        numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-        cat_cols = df.select_dtypes(exclude=np.number).columns.tolist()
+                scaler = StandardScaler()
+                df_clean[scale_col + "_standardizat"] = scaler.fit_transform(
+                    df_clean[[scale_col]]
+                )
 
-        st.subheader("Filtrare date")
-        filtered_df = df.copy()
+                df_clean[scale_col + "_normalizat"] = (
+                    df_clean[scale_col] - df_clean[scale_col].min()
+                ) / (
+                    df_clean[scale_col].max() - df_clean[scale_col].min()
+                )
 
-        for col in numeric_cols:
-            min_val, max_val = st.slider(
-                f"Interval pentru {col}",
-                float(df[col].min()), float(df[col].max()),
-                (float(df[col].min()), float(df[col].max()))
-            )
-            filtered_df = filtered_df[(filtered_df[col] >= min_val) & (filtered_df[col] <= max_val)]
+                st.subheader("Rezultat")
+                st.dataframe(
+                    df_clean[
+                        [scale_col, scale_col + "_standardizat", scale_col + "_normalizat"]
+                    ].head(10)
+                )
 
-        for col in cat_cols:
-            options = st.multiselect(f"Valori pentru {col}", df[col].dropna().unique())
-            if options:
-                filtered_df = filtered_df[filtered_df[col].isin(options)]
-
-        st.write(f"Rânduri inițiale: {len(df)}")
-        st.write(f"Rânduri după filtrare: {len(filtered_df)}")
-        st.dataframe(filtered_df)
 
         # =========================
         # CERINTA 2 – Info despre dataset
