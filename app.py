@@ -42,10 +42,8 @@ if uploaded_file:
         cat_cols = df.select_dtypes(exclude=np.number).columns.tolist()
 
         st.subheader("Filtrare date")
-
         filtered_df = df.copy()
 
-        # Numeric filters
         for col in numeric_cols:
             min_val, max_val = st.slider(
                 f"Interval pentru {col}",
@@ -54,9 +52,8 @@ if uploaded_file:
             )
             filtered_df = filtered_df[(filtered_df[col] >= min_val) & (filtered_df[col] <= max_val)]
 
-        # Categorical filters
         for col in cat_cols:
-            options = st.multiselect(f"Valori pentru {col}", df[col].unique())
+            options = st.multiselect(f"Valori pentru {col}", df[col].dropna().unique())
             if options:
                 filtered_df = filtered_df[filtered_df[col].isin(options)]
 
@@ -69,24 +66,21 @@ if uploaded_file:
         # =========================
 
         st.header("2. Informații generale despre dataset")
-
-        st.subheader("Număr rânduri și coloane")
-        st.write(df.shape)
-
-        st.subheader("Tipuri de date")
+        st.write("Dimensiune:", df.shape)
+        st.write("Tipuri de date:")
         st.write(df.dtypes)
 
-        st.subheader("Valori lipsă")
         missing = df.isnull().sum()
         missing_pct = (missing / len(df)) * 100
+        st.subheader("Valori lipsă")
         st.write(pd.DataFrame({"Missing": missing, "%": missing_pct}))
 
-        st.subheader("Grafic valori lipsă")
-        fig, ax = plt.subplots()
-        missing.plot(kind='bar', ax=ax)
+        fig, ax = plt.subplots(figsize=(4,3))
+        missing.plot(kind='bar', ax=ax, color='steelblue')
+        ax.set_title("Valori lipsă pe coloană")
         st.pyplot(fig)
 
-        st.subheader("Statistici descriptive pentru coloane numerice")
+        st.subheader("Statistici descriptive")
         st.write(df.describe().T)
 
         # =========================
@@ -100,14 +94,17 @@ if uploaded_file:
             bins = st.slider("Număr de bins", 10, 100, 30)
 
             scaler = StandardScaler()
-            scaled_values = scaler.fit_transform(df[[selected_num]].dropna())
+            scaled_values = scaler.fit_transform(df[[selected_num]].dropna()).flatten()
 
-            fig1, ax1 = plt.subplots(figsize=(5,3))()
-            ax1.hist(df[selected_num].dropna(), bins=bins)
+            fig1, ax1 = plt.subplots(figsize=(4,3))
+            ax1.hist(scaled_values, bins=bins, color='steelblue', label='Distribuție')
+            ax1.set_title(f"Histogramă – {selected_num}")
+            ax1.legend()
             st.pyplot(fig1)
 
-            fig2, ax2 = plt.subplots(figsize=(5,3))()
-            sns.boxplot(x=df[selected_num], ax=ax2)
+            fig2, ax2 = plt.subplots(figsize=(4,3))
+            sns.boxplot(x=df[selected_num], ax=ax2, color='lightcoral')
+            ax2.set_title(f"Boxplot – {selected_num}")
             st.pyplot(fig2)
 
             st.write("Medie:", df[selected_num].mean())
@@ -122,14 +119,13 @@ if uploaded_file:
 
         if cat_cols:
             selected_cat = st.selectbox("Alege o coloană categorică", cat_cols)
-
             freq = df[selected_cat].value_counts()
             freq_pct = df[selected_cat].value_counts(normalize=True) * 100
-
             st.write(pd.DataFrame({"Frecvență": freq, "%": freq_pct}))
 
             fig3, ax3 = plt.subplots(figsize=(4,3))
-            sns.countplot(x=df[selected_cat], ax=ax3)
+            sns.countplot(x=df[selected_cat], ax=ax3, palette='Set2')
+            ax3.set_title(f"Frecvențe – {selected_cat}")
             plt.xticks(rotation=45)
             st.pyplot(fig3)
 
@@ -140,29 +136,25 @@ if uploaded_file:
         st.header("5. Corelații și Outlieri")
 
         if numeric_cols:
-            # Heatmap
             st.subheader("Matrice de corelație")
             corr = df[numeric_cols].corr()
             fig4, ax4 = plt.subplots(figsize=(5,4))
-            sns.heatmap(corr, annot=True, cmap="viridis", ax=ax4)
+            sns.heatmap(corr, annot=True, cmap='viridis', ax=ax4, cbar_kws={'label': 'Coeficient'})
             st.pyplot(fig4)
 
-            # Scatter plot
-            st.subheader("Scatter plot între două variabile")
+            st.subheader("Scatter plot")
             col_x = st.selectbox("Variabilă X", numeric_cols)
             col_y = st.selectbox("Variabilă Y", numeric_cols)
 
             fig5, ax5 = plt.subplots(figsize=(4,3))
-            sns.scatterplot(x=df[col_x], y=df[col_y], ax=ax5)
+            sns.scatterplot(x=df[col_x], y=df[col_y], ax=ax5, color='purple', label='Observații')
+            ax5.legend()
             st.pyplot(fig5)
 
             st.write("Coeficient Pearson:", df[col_x].corr(df[col_y]))
 
-            # Outliers IQR
             st.subheader("Detectare outlieri (IQR)")
-
             outlier_info = {}
-
             for col in numeric_cols:
                 Q1 = df[col].quantile(0.25)
                 Q3 = df[col].quantile(0.75)
@@ -177,10 +169,8 @@ if uploaded_file:
 
             st.write(pd.DataFrame(outlier_info).T)
 
-            st.subheader("Vizualizare outlieri")
-
             for col in numeric_cols:
                 fig6, ax6 = plt.subplots(figsize=(4,3))
-                sns.boxplot(x=df[col], ax=ax6)
-                ax6.set_title(f"Outlieri pentru {col}")
+                sns.boxplot(x=df[col], ax=ax6, color='orange')
+                ax6.set_title(f"Outlieri – {col}")
                 st.pyplot(fig6)
