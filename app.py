@@ -317,10 +317,15 @@ if uploaded_file:
 
                 st.dataframe(pd.DataFrame(outlier_info).T)
 
-                # Boxplot pentru outlieri
-                for col in numeric_cols:
-                    fig, ax = plt.subplots(figsize=(6,4))
-                    sns.boxplot(x=df[col], ax=ax, color='orange')
-                    ax.set_title(f"Outlieri – {col}")
-                    st.pyplot(fig)
+                # Boxplot pentru outlieri - 2 pe rând
+                for i in range(0, len(numeric_cols), 2):
+                    cols_pair = numeric_cols[i:i+2]
+                    cols_layout = st.columns(len(cols_pair))
+                    for j, col in enumerate(cols_pair):
+                        with cols_layout[j]:
+                            fig, ax = plt.subplots(figsize=(5,4))
+                            sns.boxplot(x=df[col], ax=ax, color='orange')
+                            ax.set_title(f"Outlieri – {col}")
+                            st.pyplot(fig)
+
 
