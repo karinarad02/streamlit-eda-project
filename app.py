@@ -43,10 +43,10 @@ if uploaded_file:
         # =========================
 
         tab1, tab2, tab3, tab4 = st.tabs([
-            "1.1 Curățarea datelor",
-            "1.2 Detectare outlieri",
-            "1.3 Prelucrare text",
-            "1.4 Standardizare & normalizare"
+            "Curățarea datelor",
+            "Detectare outlieri",
+            "Prelucrare text",
+            "Standardizare & normalizare"
         ])
 
         df_clean = df.copy()
@@ -279,41 +279,48 @@ if uploaded_file:
         st.header("5. Corelații și Outlieri")
 
         if numeric_cols:
-            st.subheader("Matrice de corelație")
-            corr = df[numeric_cols].corr()
-            fig4, ax4 = plt.subplots(figsize=(5,4))
-            sns.heatmap(corr, annot=True, cmap='viridis', ax=ax4, cbar_kws={'label': 'Coeficient'})
-            st.pyplot(fig4)
+            tab_corr, tab_scatter, tab_outliers = st.tabs(["Matrice de corelație", "Scatter plot", "Outlieri"])
 
-            st.subheader("Scatter plot")
-            col_x = st.selectbox("Variabilă X", numeric_cols)
-            col_y = st.selectbox("Variabilă Y", numeric_cols)
+            with tab_corr:
+                st.subheader("Matrice de corelație")
+                corr = df[numeric_cols].corr()
+                fig, ax = plt.subplots(figsize=(6,5))
+                sns.heatmap(corr, annot=True, cmap='viridis', ax=ax, cbar_kws={'label': 'Coeficient'})
+                st.pyplot(fig)
 
-            fig5, ax5 = plt.subplots(figsize=(4,3))
-            sns.scatterplot(x=df[col_x], y=df[col_y], ax=ax5, color='purple', label='Observații')
-            ax5.legend()
-            st.pyplot(fig5)
+            with tab_scatter:
+                st.subheader("Scatter plot")
+                col_x = st.selectbox("Variabilă X", numeric_cols, key='scatter_x')
+                col_y = st.selectbox("Variabilă Y", numeric_cols, key='scatter_y')
 
-            st.write("Coeficient Pearson:", df[col_x].corr(df[col_y]))
+                fig, ax = plt.subplots(figsize=(6,4))
+                sns.scatterplot(x=df[col_x], y=df[col_y], ax=ax, color='purple', label='Observații')
+                ax.legend()
+                st.pyplot(fig)
 
-            st.subheader("Detectare outlieri (IQR)")
-            outlier_info = {}
-            for col in numeric_cols:
-                Q1 = df[col].quantile(0.25)
-                Q3 = df[col].quantile(0.75)
-                IQR = Q3 - Q1
-                lower = Q1 - 1.5 * IQR
-                upper = Q3 + 1.5 * IQR
-                outliers = df[(df[col] < lower) | (df[col] > upper)]
-                outlier_info[col] = {
-                    "count": len(outliers),
-                    "percentage": (len(outliers) / len(df)) * 100
-                }
+                st.write("Coeficient Pearson:", df[col_x].corr(df[col_y]))
 
-            st.write(pd.DataFrame(outlier_info).T)
+            with tab_outliers:
+                st.subheader("Detectare outlieri (IQR)")
+                outlier_info = {}
+                for col in numeric_cols:
+                    Q1 = df[col].quantile(0.25)
+                    Q3 = df[col].quantile(0.75)
+                    IQR = Q3 - Q1
+                    lower = Q1 - 1.5 * IQR
+                    upper = Q3 + 1.5 * IQR
+                    outliers = df[(df[col] < lower) | (df[col] > upper)]
+                    outlier_info[col] = {
+                        "count": len(outliers),
+                        "percentage": (len(outliers) / len(df)) * 100
+                    }
 
-            for col in numeric_cols:
-                fig6, ax6 = plt.subplots(figsize=(4,3))
-                sns.boxplot(x=df[col], ax=ax6, color='orange')
-                ax6.set_title(f"Outlieri – {col}")
-                st.pyplot(fig6)
+                st.dataframe(pd.DataFrame(outlier_info).T)
+
+                # Boxplot pentru outlieri
+                for col in numeric_cols:
+                    fig, ax = plt.subplots(figsize=(6,4))
+                    sns.boxplot(x=df[col], ax=ax, color='orange')
+                    ax.set_title(f"Outlieri – {col}")
+                    st.pyplot(fig)
+
