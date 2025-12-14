@@ -100,9 +100,9 @@ if uploaded_file:
             bins = st.slider("Număr de bins", 10, 100, 30)
 
             scaler = StandardScaler()
-scaled_values = scaler.fit_transform(df[[selected_num]].dropna())
+            scaled_values = scaler.fit_transform(df[[selected_num]].dropna())
 
-fig1, ax1 = plt.subplots(figsize=(5,3))()
+            fig1, ax1 = plt.subplots(figsize=(5,3))()
             ax1.hist(df[selected_num].dropna(), bins=bins)
             st.pyplot(fig1)
 
