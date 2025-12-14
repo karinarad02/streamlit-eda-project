@@ -66,8 +66,15 @@ if uploaded_file:
                     mode_value = df_clean[col].mode()[0]
                     df_clean[col] = df_clean[col].fillna(mode_value)
 
+            st.subheader("Număr valori lipsă (înainte de curățare)")
+            missing_before = df.isnull().sum().reset_index()
+            missing_before.columns = ['Coloană', 'Lipsă']
+            st.dataframe(missing_before)
+
             st.subheader("Număr valori lipsă (după curățare)")
-            st.write(df_clean.isnull().sum())
+            missing_after = df_clean.isnull().sum().reset_index()
+            missing_after.columns = ['Coloană', 'Lipsă']
+            st.dataframe(missing_after)
 
             st.subheader("Preview date curățate")
             st.dataframe(df_clean.head(10))
@@ -125,15 +132,12 @@ if uploaded_file:
                     .str.replace(" ", "_", regex=False)
                 )
 
-                st.subheader("După procesare text")
-                st.dataframe(df_clean[[text_col]].head(10))
-
                 # Label Encoding
                 from sklearn.preprocessing import LabelEncoder
                 le = LabelEncoder()
                 df_clean[text_col + "_encoded"] = le.fit_transform(df_clean[text_col])
 
-                st.subheader("Label Encoding")
+                st.subheader("După prelucrare text + Label Encoding")
                 st.dataframe(df_clean[[text_col, text_col + "_encoded"]].head(10))
 
             else:
@@ -176,7 +180,7 @@ if uploaded_file:
         missing = df.isnull().sum()
         missing_pct = (missing / len(df)) * 100
         st.subheader("Valori lipsă")
-        st.write(pd.DataFrame({"Missing": missing, "%": missing_pct}))
+        st.write(pd.DataFrame({"Lipsă": missing, "%": missing_pct}))
 
         fig, ax = plt.subplots(figsize=(4,3))
         missing.plot(kind='bar', ax=ax, color='steelblue')
