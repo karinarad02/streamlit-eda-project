@@ -99,23 +99,15 @@ if uploaded_file:
             selected_num = st.selectbox("Alege o coloană numerică", numeric_cols)
             bins = st.slider("Număr de bins", 10, 100, 30)
 
-            # Standardizare cu sklearn (optional, doar pentru vizualizare)
-            from sklearn.preprocessing import StandardScaler
             scaler = StandardScaler()
-            scaled_values = scaler.fit_transform(
-                df[[selected_num]].dropna()
-            ).flatten()
+scaled_values = scaler.fit_transform(df[[selected_num]].dropna())
 
-            # Histogramă
-            fig1, ax1 = plt.subplots(figsize=(5, 3))
-            ax1.hist(scaled_values, bins=bins)
-            ax1.set_title(f"Histogramă (standardizată) - {selected_num}")
+fig1, ax1 = plt.subplots(figsize=(5,3))()
+            ax1.hist(df[selected_num].dropna(), bins=bins)
             st.pyplot(fig1)
 
-            # Boxplot
-            fig2, ax2 = plt.subplots(figsize=(5, 3))
+            fig2, ax2 = plt.subplots(figsize=(5,3))()
             sns.boxplot(x=df[selected_num], ax=ax2)
-            ax2.set_title(f"Boxplot - {selected_num}")
             st.pyplot(fig2)
 
             st.write("Medie:", df[selected_num].mean())
@@ -136,7 +128,7 @@ if uploaded_file:
 
             st.write(pd.DataFrame({"Frecvență": freq, "%": freq_pct}))
 
-            fig3, ax3 = plt.subplots(figsize=(5,3))()
+            fig3, ax3 = plt.subplots(figsize=(4,3))
             sns.countplot(x=df[selected_cat], ax=ax3)
             plt.xticks(rotation=45)
             st.pyplot(fig3)
@@ -151,7 +143,7 @@ if uploaded_file:
             # Heatmap
             st.subheader("Matrice de corelație")
             corr = df[numeric_cols].corr()
-            fig4, ax4 = plt.subplots(figsize=(6,4))(figsize=(10, 6))
+            fig4, ax4 = plt.subplots(figsize=(5,4))
             sns.heatmap(corr, annot=True, cmap="viridis", ax=ax4)
             st.pyplot(fig4)
 
@@ -160,7 +152,7 @@ if uploaded_file:
             col_x = st.selectbox("Variabilă X", numeric_cols)
             col_y = st.selectbox("Variabilă Y", numeric_cols)
 
-            fig5, ax5 = plt.subplots(figsize=(5,3))()
+            fig5, ax5 = plt.subplots(figsize=(4,3))
             sns.scatterplot(x=df[col_x], y=df[col_y], ax=ax5)
             st.pyplot(fig5)
 
@@ -188,7 +180,7 @@ if uploaded_file:
             st.subheader("Vizualizare outlieri")
 
             for col in numeric_cols:
-                fig6, ax6 = plt.subplots(figsize=(5,3))()
+                fig6, ax6 = plt.subplots(figsize=(4,3))
                 sns.boxplot(x=df[col], ax=ax6)
                 ax6.set_title(f"Outlieri pentru {col}")
                 st.pyplot(fig6)
