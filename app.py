@@ -66,18 +66,22 @@ if uploaded_file:
                     mode_value = df_clean[col].mode()[0]
                     df_clean[col] = df_clean[col].fillna(mode_value)
 
-            st.subheader("Număr valori lipsă (înainte de curățare)")
-            missing_before = df.isnull().sum().reset_index()
-            missing_before.columns = ['Coloană', 'Lipsă']
-            st.dataframe(missing_before)
+            # Număr valori lipsă înainte și după curățare
+            missing_before = df.isnull().sum()
+            missing_after = df_clean.isnull().sum()
 
-            st.subheader("Număr valori lipsă (după curățare)")
-            missing_after = df_clean.isnull().sum().reset_index()
-            missing_after.columns = ['Coloană', 'Lipsă']
-            st.dataframe(missing_after)
+            missing_df = pd.DataFrame({
+                'Coloană': df.columns,
+                'Lipsă înainte': missing_before.values,
+                'Lipsă după': missing_after.values
+            })
+
+            st.subheader("Număr valori lipsă")
+            st.dataframe(missing_df)
 
             st.subheader("Preview date curățate")
             st.dataframe(df_clean.head(10))
+
 
         # =========================
         # TAB 2 – Detectare și corectare outlieri (IQR)
@@ -187,14 +191,21 @@ if uploaded_file:
             missing = df.isnull().sum()
             missing_pct = (missing / len(df)) * 100
             missing_df = pd.DataFrame({"Lipsă": missing, "%": missing_pct})
-            st.dataframe(missing_df)
 
-            # Grafic valori lipsă
-            fig, ax = plt.subplots(figsize=(6,4))
-            missing.plot(kind='bar', ax=ax, color='steelblue')
-            ax.set_title("Valori lipsă pe coloană")
-            ax.set_ylabel("Număr valori lipsă")
-            st.pyplot(fig)
+            # Creăm două coloane
+            col1, col2 = st.columns([1, 1])
+
+            # Tabel în prima coloană
+            with col1:
+                st.dataframe(missing_df)
+
+            # Grafic în a doua coloană
+            with col2:
+                fig, ax = plt.subplots(figsize=(6,4))
+                missing.plot(kind='bar', ax=ax, color='steelblue')
+                ax.set_title("Valori lipsă pe coloană")
+                ax.set_ylabel("Număr valori lipsă")
+                st.pyplot(fig)
 
         with tab3:
             st.subheader("Statistici descriptive")
@@ -243,13 +254,23 @@ if uploaded_file:
             selected_cat = st.selectbox("Alege o coloană categorică", cat_cols)
             freq = df[selected_cat].value_counts()
             freq_pct = df[selected_cat].value_counts(normalize=True) * 100
-            st.write(pd.DataFrame({"Frecvență": freq, "%": freq_pct}))
+            freq_df = pd.DataFrame({"Frecvență": freq, "%": freq_pct})
 
-            fig3, ax3 = plt.subplots(figsize=(4,3))
-            sns.countplot(x=df[selected_cat], ax=ax3, palette='Set2')
-            ax3.set_title(f"Frecvențe – {selected_cat}")
-            plt.xticks(rotation=45)
-            st.pyplot(fig3)
+            # Creăm două coloane
+            col1, col2 = st.columns([1, 1])
+
+            # Tabel în prima coloană
+            with col1:
+                st.dataframe(freq_df)
+
+            # Grafic în a doua coloană
+            with col2:
+                fig, ax = plt.subplots(figsize=(6,4))
+                sns.countplot(x=df[selected_cat], ax=ax, palette='Set2')
+                ax.set_title(f"Frecvențe – {selected_cat}")
+                plt.xticks(rotation=45)
+                st.pyplot(fig)
+
 
         # =========================
         # CERINTA 5 – Corelații & Outlieri
