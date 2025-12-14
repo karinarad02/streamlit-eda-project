@@ -173,22 +173,32 @@ if uploaded_file:
         # =========================
 
         st.header("2. Informații generale despre dataset")
-        st.write("Dimensiune:", df.shape)
-        st.write("Tipuri de date:")
-        st.write(df.dtypes)
 
-        missing = df.isnull().sum()
-        missing_pct = (missing / len(df)) * 100
-        st.subheader("Valori lipsă")
-        st.write(pd.DataFrame({"Lipsă": missing, "%": missing_pct}))
+        tab1, tab2, tab3 = st.tabs(["Structura", "Valori lipsă", "Descriere"])
 
-        fig, ax = plt.subplots(figsize=(4,3))
-        missing.plot(kind='bar', ax=ax, color='steelblue')
-        ax.set_title("Valori lipsă pe coloană")
-        st.pyplot(fig)
+        with tab1:
+            st.subheader("Structura dataset")
+            st.write("Dimensiune:", df.shape)
+            st.write("Tipuri de date:")
+            st.write(df.dtypes)
 
-        st.subheader("Statistici descriptive")
-        st.write(df.describe().T)
+        with tab2:
+            st.subheader("Valori lipsă")
+            missing = df.isnull().sum()
+            missing_pct = (missing / len(df)) * 100
+            missing_df = pd.DataFrame({"Lipsă": missing, "%": missing_pct})
+            st.dataframe(missing_df)
+
+            # Grafic valori lipsă
+            fig, ax = plt.subplots(figsize=(6,4))
+            missing.plot(kind='bar', ax=ax, color='steelblue')
+            ax.set_title("Valori lipsă pe coloană")
+            ax.set_ylabel("Număr valori lipsă")
+            st.pyplot(fig)
+
+        with tab3:
+            st.subheader("Statistici descriptive")
+            st.dataframe(df.describe().T)
 
         # =========================
         # CERINTA 3 – Histogramă & Boxplot
@@ -200,20 +210,25 @@ if uploaded_file:
             selected_num = st.selectbox("Alege o coloană numerică", numeric_cols)
             bins = st.slider("Număr de bins", 10, 100, 30)
 
+            # Standardizare valori pentru histogramă
             scaler = StandardScaler()
             scaled_values = scaler.fit_transform(df[[selected_num]].dropna()).flatten()
 
-            fig1, ax1 = plt.subplots(figsize=(4,3))
+            # Creăm o figură cu două subploturi pe orizontală
+            fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10,4))
+
+            # Histogramă
             ax1.hist(scaled_values, bins=bins, color='steelblue', label='Distribuție')
             ax1.set_title(f"Histogramă – {selected_num}")
             ax1.legend()
-            st.pyplot(fig1)
 
-            fig2, ax2 = plt.subplots(figsize=(4,3))
+            # Boxplot
             sns.boxplot(x=df[selected_num], ax=ax2, color='lightcoral')
             ax2.set_title(f"Boxplot – {selected_num}")
-            st.pyplot(fig2)
 
+            st.pyplot(fig)
+
+            # Statistici descriptive
             st.write("Medie:", df[selected_num].mean())
             st.write("Mediană:", df[selected_num].median())
             st.write("Deviație standard:", df[selected_num].std())
