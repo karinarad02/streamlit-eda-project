@@ -99,15 +99,23 @@ if uploaded_file:
             selected_num = st.selectbox("Alege o coloană numerică", numeric_cols)
             bins = st.slider("Număr de bins", 10, 100, 30)
 
+            # Standardizare cu sklearn (optional, doar pentru vizualizare)
+            from sklearn.preprocessing import StandardScaler
             scaler = StandardScaler()
-scaled_values = scaler.fit_transform(df[[selected_num]].dropna())
+            scaled_values = scaler.fit_transform(
+                df[[selected_num]].dropna()
+            ).flatten()
 
-fig1, ax1 = plt.subplots(figsize=(5,3))()
-            ax1.hist(df[selected_num].dropna(), bins=bins)
+            # Histogramă
+            fig1, ax1 = plt.subplots(figsize=(5, 3))
+            ax1.hist(scaled_values, bins=bins)
+            ax1.set_title(f"Histogramă (standardizată) - {selected_num}")
             st.pyplot(fig1)
 
-            fig2, ax2 = plt.subplots(figsize=(5,3))()
+            # Boxplot
+            fig2, ax2 = plt.subplots(figsize=(5, 3))
             sns.boxplot(x=df[selected_num], ax=ax2)
+            ax2.set_title(f"Boxplot - {selected_num}")
             st.pyplot(fig2)
 
             st.write("Medie:", df[selected_num].mean())
