@@ -282,9 +282,19 @@ if uploaded_file:
             with tab_corr:
                 st.subheader("Matrice de corelație")
                 corr = df[numeric_cols].corr()
-                fig, ax = plt.subplots(figsize=(6,5))
-                sns.heatmap(corr, annot=True, cmap='viridis', ax=ax, cbar_kws={'label': 'Coeficient'})
-                st.pyplot(fig)
+
+                # Creăm două coloane
+                col1, col2 = st.columns([1, 1])
+
+                # Tabel în prima coloană
+                with col1:
+                    st.dataframe(corr)
+
+                # Heatmap în a doua coloană
+                with col2:
+                    fig, ax = plt.subplots(figsize=(6,5))
+                    sns.heatmap(corr, annot=True, cmap='viridis', ax=ax, cbar_kws={'label': 'Coeficient'})
+                    st.pyplot(fig)
 
             with tab_scatter:
                 st.subheader("Scatter plot")
