@@ -84,10 +84,10 @@ if uploaded_file:
 
 
         # =========================
-        # TAB 2 – Detectare și corectare outlieri (IQR)
+        # TAB 2 – Detectare outlieri (IQR)
         # =========================
         with tab2:
-            st.subheader("Detectare și corectare outlieri (metoda IQR)")
+            st.subheader("Detectare outlieri (metoda IQR)")
 
             numeric_cols = df_clean.select_dtypes(include=np.number).columns.tolist()
             outlier_summary = {}
@@ -104,7 +104,7 @@ if uploaded_file:
                 outliers_mask = (df_clean[col] < lower) | (df_clean[col] > upper)
                 outlier_count = outliers_mask.sum()
 
-                # Corectare outlieri (winsorizare)
+                # Limite outlieri (winsorizare)
                 df_clean.loc[df_clean[col] < lower, col] = lower
                 df_clean.loc[df_clean[col] > upper, col] = upper
 
@@ -116,8 +116,6 @@ if uploaded_file:
                 }
 
             st.dataframe(pd.DataFrame(outlier_summary).T)
-
-            st.success("✔ Outlierii au fost detectați și corectați folosind metoda IQR.")
 
         # =========================
         # TAB 3 – Prelucrare text + Label Encoding
