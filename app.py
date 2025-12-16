@@ -186,7 +186,7 @@ if uploaded_file:
 
         st.subheader("Filtrare date")
 
-        filtered_df = df.copy()
+        filtered_df = df_clean.copy()
 
         # Identificare coloane
         numeric_cols = filtered_df.select_dtypes(include=np.number).columns.tolist()
