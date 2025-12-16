@@ -121,14 +121,17 @@ if uploaded_file:
         # TAB 3 – Prelucrare text + Label Encoding
         # =========================
         with tab3:
-            cat_cols = df_clean.select_dtypes(exclude=np.number).columns.tolist()
+            # COPIE înainte de prelucrare
+            df_text = df_clean.copy()
+
+            cat_cols = df_text.select_dtypes(exclude=np.number).columns.tolist()
 
             if cat_cols:
                 text_col = st.selectbox("Selectează coloană text", cat_cols)
 
                 # Prelucrare text
-                df_clean[text_col] = (
-                    df_clean[text_col]
+                df_text[text_col] = (
+                    df_text[text_col]
                     .str.lower()
                     .str.strip()
                     .str.replace(" ", "_", regex=False)
@@ -137,38 +140,45 @@ if uploaded_file:
                 # Label Encoding
                 from sklearn.preprocessing import LabelEncoder
                 le = LabelEncoder()
-                df_clean[text_col + "_encoded"] = le.fit_transform(df_clean[text_col])
+                df_text[text_col + "_encoded"] = le.fit_transform(df_text[text_col])
 
                 st.subheader("După prelucrare text + Label Encoding")
-                st.dataframe(df_clean[[text_col, text_col + "_encoded"]].head(10))
+                st.dataframe(
+                    df_text[[text_col, text_col + "_encoded"]].head(10)
+                )
 
             else:
                 st.info("Nu există coloane categorice.")
+
 
         # =========================
         # TAB 4 – Standardizare & normalizare
         # =========================
         with tab4:
+            # COPIE înainte de standardizare
+            df_scaled = df_clean.copy()
+
             if numeric_cols:
                 scale_col = st.selectbox("Selectează coloană numerică", numeric_cols)
 
                 scaler = StandardScaler()
-                df_clean[scale_col + "_standardizat"] = scaler.fit_transform(
-                    df_clean[[scale_col]]
+                df_scaled[scale_col + "_standardizat"] = scaler.fit_transform(
+                    df_scaled[[scale_col]]
                 )
 
-                df_clean[scale_col + "_normalizat"] = (
-                    df_clean[scale_col] - df_clean[scale_col].min()
+                df_scaled[scale_col + "_normalizat"] = (
+                    df_scaled[scale_col] - df_scaled[scale_col].min()
                 ) / (
-                    df_clean[scale_col].max() - df_clean[scale_col].min()
+                    df_scaled[scale_col].max() - df_scaled[scale_col].min()
                 )
 
                 st.subheader("Rezultat")
                 st.dataframe(
-                    df_clean[
+                    df_scaled[
                         [scale_col, scale_col + "_standardizat", scale_col + "_normalizat"]
                     ].head(10)
                 )
+
 
         # =========================
         # FILTRARE DATE
