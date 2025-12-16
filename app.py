@@ -39,6 +39,51 @@ if uploaded_file:
         st.dataframe(df.head(10))
 
         # =========================
+        # FILTRARE DATE (ÎNAINTE DE TABURI)
+        # =========================
+
+        st.subheader("Filtrare date")
+
+        filtered_df = df.copy()
+
+        # Identificare coloane
+        numeric_cols = filtered_df.select_dtypes(include=np.number).columns.tolist()
+        cat_cols = filtered_df.select_dtypes(exclude=np.number).columns.tolist()
+
+        # ---- Filtrare coloane numerice (slidere)
+        if numeric_cols:
+            st.markdown("### 🔢 Filtrare coloane numerice")
+            for col in numeric_cols:
+                min_val, max_val = st.slider(
+                    f"{col}",
+                    float(filtered_df[col].min()),
+                    float(filtered_df[col].max()),
+                    (float(filtered_df[col].min()), float(filtered_df[col].max()))
+                )
+                filtered_df = filtered_df[
+                    (filtered_df[col] >= min_val) & (filtered_df[col] <= max_val)
+                ]
+
+        # ---- Filtrare coloane categorice (multiselect)
+        if cat_cols:
+            st.markdown("### 🏷️ Filtrare coloane categorice")
+            for col in cat_cols:
+                options = st.multiselect(
+                    f"{col}",
+                    filtered_df[col].dropna().unique()
+                )
+                if options:
+                    filtered_df = filtered_df[filtered_df[col].isin(options)]
+
+        # ---- Afișare rezultate filtrare
+        st.markdown("### 📊 Rezultate filtrare")
+        st.write(f"🔹 Rânduri inițiale: **{len(df)}**")
+        st.write(f"🔹 Rânduri după filtrare: **{len(filtered_df)}**")
+
+        st.dataframe(filtered_df)
+
+
+        # =========================
         # ETAPE DUPĂ ÎNCĂRCARE – TABURI
         # =========================
 
