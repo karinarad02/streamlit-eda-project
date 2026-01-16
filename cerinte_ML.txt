@@ -1,0 +1,56 @@
+Scopul temei este extinderea aplicația Stremlit cu un modul complet de antrenare + evaluare + comparație pentru 2–3 algoritmi ML.
+
+Partea 1 — Date și definirea problemei
+1.	Utilizatorul selectează:
+o	coloana țintă (target),
+o	feature-urile (opțional: select all / exclude columns),
+-	o secțiune Streamlit „Problem Setup”.
+
+Partea 2 
+1.	Preprocesarea trebuie făcută într-un Pipeline (scikit-learn), separat pe:
+o	numeric: imputare + scalare
+o	categoric: imputare + encoding 
+2.	Aplicația trebuie să ofere opțiuni:
+o	metoda de imputare (mean/median/most_frequent),
+o	scalare (StandardScaler / MinMax / fără),
+o	opțional: eliminare outlieri (reguli simple) sau selecție features (SelectKBest).
+-	pipeline aplicat consistent pentru train/test și pentru predicții viitoare.
+
+Partea 3 
+1.	Split:
+o	train/test (ex: 80/20) sau train/validation/test.
+2.	Setare random_state controlabil din UI.
+secțiune „Train/Test Split”.
+
+Partea 4 — Integrare 2–3 algoritmi ML
+Alege minim 2 algoritmi (ideal 3) din lista de mai jos (în funcție de problemă):
+Clasificare (exemple)
+•	Logistic Regression
+•	Random Forest Classifier
+•	SVM (SVC)
+•	KNN
+•	Gradient Boosting / XGBoost 
+Regresie Linear Regression / Ridge / Lasso
+•	Random Forest Regressor
+•	SVR
+•	Gradient Boosting Regressor
+Cerințe:
+1.	Utilizatorul poate selecta algoritmii din UI.
+2.	Pentru fiecare algoritm, există un set minim de hiperparametri configurabili (2–4 parametri relevanți).
+3.	Modelele se antrenează pe același pipeline și același split pentru comparație corectă.
+secțiune „Models” cu selectare + parametri + buton Train.
+
+Partea 5 — Evaluare, metrici și comparație
+Clasificare 
+•	Accuracy
+•	Precision, Recall, F1 (macro sau weighted)
+•	Confusion Matrix (vizual)
+•	ROC-AUC (dacă e binary, opțional dacă multiclass)
+Regresie 
+•	MAE
+•	MSE / RMSE
+•	R²
+1.	Aplicația afișează rezultatele pe test.
+2.	Aplicația afișează un tabel comparativ cu metricile pentru toate modelele.
+3.	Se evidențiază automat „cel mai bun model” conform unei metrici alese din UI.
+
