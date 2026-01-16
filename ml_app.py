@@ -135,7 +135,7 @@ def run():
 
             else:
                 mae = mean_absolute_error(y_test, preds)
-                rmse = mean_squared_error(y_test, preds, squared=False)
+                rmse = np.sqrt(mean_squared_error(y_test, preds))
                 r2 = r2_score(y_test, preds)
 
                 results.append({"Model": name, "MAE": mae, "RMSE": rmse, "R2": r2})
