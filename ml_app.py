@@ -46,6 +46,17 @@ def run():
             labels=["<25", "25-35", "35-45", "45-60", "60+"]
         )
 
+    # =========================
+    # Feature engineering: grupe experiență
+    # =========================
+    if "Experienta_ani" in df.columns:
+        df["Grupa_experienta"] = pd.cut(
+            df["Experienta_ani"],
+            bins=[-1, 1, 3, 5, 10, 50],
+            labels=["Entry (0-1)", "Junior (1-3)", "Mid (3-5)", "Senior (5-10)", "Expert (10+)"]
+        )
+
+
     st.subheader("Dataset folosit")
     st.dataframe(df.head())
 
@@ -57,9 +68,9 @@ def run():
     # Target recomandat automat
     target = st.selectbox(
         "Selectează coloana țintă (target)",
-        options=[col for col in df.columns if col in ["Grupa_varsta", "Oras"]] 
-        or list(df.columns)
+        options=[col for col in df.columns if col != "ID"]
     )
+
 
     # Features: eliminăm ID/Nume
     default_features = [c for c in df.columns if c not in [target, "ID", "Nume"]]
