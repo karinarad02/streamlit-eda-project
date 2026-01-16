@@ -1,4 +1,6 @@
 import streamlit as st
+import eda_app
+import ml_app
 
 st.set_page_config(page_title="EDA + ML App", layout="wide")
 
@@ -9,9 +11,7 @@ page = st.sidebar.radio(
 )
 
 if page == "📊 Explorare date (EDA)":
-    import eda_app
     eda_app.run()
 
 elif page == "🤖 Machine Learning":
-    import ml_app
     ml_app.run()
