@@ -54,7 +54,11 @@ def run():
     X = df[features]
     y = df[target]
 
-    problem_type = "classification" if y.nunique() < 20 else "regression"
+    problem_type = (
+        "classification"
+        if y.dtype == "object" or y.nunique() <= 10
+        else "regression"
+    )
     st.info(f"Tip problemă detectat automat: **{problem_type.upper()}**")
 
     # ======================================================
@@ -236,11 +240,32 @@ def run():
 
                 # ROC AUC + ROC Curve
                 if hasattr(pipeline.named_steps["model"], "predict_proba"):
-                    y_proba = pipeline.predict_proba(X_test)[:, 1]
+                    # =========================
+                    # ROC AUC + ROC Curve (doar binar)
+                    # =========================
+                    if (
+                        hasattr(pipeline.named_steps["model"], "predict_proba")
+                        and y.nunique() == 2
+                    ):
+                        y_proba = pipeline.predict_proba(X_test)[:, 1]
 
-                    roc_auc = roc_auc_score(y_test, y_proba)
-                    no_skill = np.zeros(len(y_test))
-                    no_skill_auc = roc_auc_score(y_test, no_skill)
+                        roc_auc = roc_auc_score(y_test, y_proba)
+                        st.write(f"**ROC AUC = {roc_auc:.3f}**")
+
+                        fpr, tpr, _ = roc_curve(y_test, y_proba)
+
+                        fig, ax = plt.subplots()
+                        ax.plot(fpr, tpr, label=f"ROC Curve (AUC={roc_auc:.3f})")
+                        ax.plot([0, 1], [0, 1], linestyle="--", label="No Skill")
+                        ax.set_xlabel("False Positive Rate")
+                        ax.set_ylabel("True Positive Rate")
+                        ax.set_title("ROC Curve")
+                        ax.legend()
+                        st.pyplot(fig)
+
+                    elif y.nunique() > 2:
+                        st.info("ROC AUC este disponibil doar pentru clasificare binară.")
+
 
                     st.write(f"**Model: ROC AUC = {roc_auc:.3f}**")
                     st.write(f"No Skill: ROC AUC = {no_skill_auc:.3f}")
