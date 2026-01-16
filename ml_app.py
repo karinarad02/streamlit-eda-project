@@ -36,27 +36,6 @@ def run():
 
     df = st.session_state["data"].copy()
 
-    # =========================
-    # Feature engineering: grupe de vârstă
-    # =========================
-    if "Varsta" in df.columns:
-        df["Grupa_varsta"] = pd.cut(
-            df["Varsta"],
-            bins=[0, 25, 35, 45, 60, 100],
-            labels=["<25", "25-35", "35-45", "45-60", "60+"]
-        )
-
-    # =========================
-    # Feature engineering: grupe experiență
-    # =========================
-    if "Experienta_ani" in df.columns:
-        df["Grupa_experienta"] = pd.cut(
-            df["Experienta_ani"],
-            bins=[-1, 1, 3, 5, 10, 50],
-            labels=["Entry (0-1)", "Junior (1-3)", "Mid (3-5)", "Senior (5-10)", "Expert (10+)"]
-        )
-
-
     st.subheader("Dataset folosit")
     st.dataframe(df.head())
 
