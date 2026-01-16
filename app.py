@@ -11,7 +11,7 @@ page = st.sidebar.radio(
 )
 
 if page == "📊 Explorare date (EDA)":
-    eda_app.run()
+    eda_app.run_eda()
 
 elif page == "🤖 Machine Learning":
     ml_app.run()
