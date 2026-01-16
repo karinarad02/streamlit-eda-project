@@ -15,8 +15,8 @@ from sklearn.svm import SVC, SVR
 
 from sklearn.metrics import (
     accuracy_score, precision_score, recall_score, f1_score,
-    confusion_matrix, roc_auc_score,
-    mean_absolute_error, mean_squared_error, r2_score
+    confusion_matrix, roc_auc_score, classification_report,
+    mean_absolute_error, mean_squared_error, r2_score, roc_curve
 )
 
 import matplotlib.pyplot as plt
@@ -39,7 +39,7 @@ def run():
     st.dataframe(df.head())
 
     # ======================================================
-    # PARTEA 1 — PROBLEM SETUP
+    # 1. PROBLEM SETUP
     # ======================================================
     st.header("1. Problem Setup")
 
@@ -58,14 +58,12 @@ def run():
     st.info(f"Tip problemă detectat automat: **{problem_type.upper()}**")
 
     # ======================================================
-    # PARTEA 2 — PREPROCESARE
+    # 2. PREPROCESARE
     # ======================================================
     st.header("2. Preprocesare")
 
     numeric_features = X.select_dtypes(include=np.number).columns
     categorical_features = X.select_dtypes(exclude=np.number).columns
-
-    st.subheader("Opțiuni preprocesare")
 
     impute_strategy = st.selectbox(
         "Imputare numerică",
@@ -77,7 +75,7 @@ def run():
         ["None", "StandardScaler", "MinMaxScaler"]
     )
 
-    use_feature_selection = st.checkbox("Aplică SelectKBest (feature selection)")
+    use_feature_selection = st.checkbox("Aplică SelectKBest")
     k_features = st.slider(
         "Număr features păstrate",
         1, max(1, X.shape[1]), min(10, X.shape[1])
@@ -104,7 +102,7 @@ def run():
     ])
 
     # ======================================================
-    # PARTEA 3 — TRAIN / TEST SPLIT
+    # 3. TRAIN / TEST SPLIT
     # ======================================================
     st.header("3. Train / Test Split")
 
@@ -119,15 +117,13 @@ def run():
     )
 
     # ======================================================
-    # PARTEA 4 — MODELE & HIPERPARAMETRI
+    # 4. MODELE
     # ======================================================
     st.header("4. Modele")
 
     models = {}
 
     if problem_type == "classification":
-        st.subheader("Clasificare")
-
         if st.checkbox("Logistic Regression"):
             C = st.slider("LR: C", 0.01, 10.0, 1.0)
             models["Logistic Regression"] = LogisticRegression(
@@ -149,8 +145,6 @@ def run():
             models["SVM"] = SVC(C=C, kernel=kernel, probability=True)
 
     else:
-        st.subheader("Regresie")
-
         if st.checkbox("Linear Regression"):
             models["Linear Regression"] = LinearRegression()
 
@@ -168,7 +162,7 @@ def run():
             models["SVR"] = SVR(C=C)
 
     # ======================================================
-    # PARTEA 5 — ANTRENARE & EVALUARE
+    # 5. ANTRENARE & EVALUARE
     # ======================================================
     st.header("5. Evaluare & Comparare")
 
@@ -192,7 +186,6 @@ def run():
                 steps.append(("selector", selector))
 
             steps.append(("model", model))
-
             pipeline = Pipeline(steps)
 
             pipeline.fit(X_train, y_train)
@@ -200,11 +193,19 @@ def run():
 
             st.subheader(name)
 
+            # =========================
+            # CLASIFICARE
+            # =========================
             if problem_type == "classification":
                 acc = accuracy_score(y_test, preds)
                 prec = precision_score(y_test, preds, average="weighted")
                 rec = recall_score(y_test, preds, average="weighted")
                 f1 = f1_score(y_test, preds, average="weighted")
+
+                st.metric("Acuratețe", f"{acc:.3f}")
+
+                st.text("Classification report:")
+                st.text(classification_report(y_test, preds))
 
                 results.append({
                     "Model": name,
@@ -214,15 +215,52 @@ def run():
                     "F1": f1
                 })
 
+                # Matrice de confuzie etichetată
                 cm = confusion_matrix(y_test, preds)
+                labels = np.unique(y_test)
+
                 fig, ax = plt.subplots()
-                sns.heatmap(cm, annot=True, fmt="d", ax=ax)
+                sns.heatmap(
+                    cm,
+                    annot=True,
+                    fmt="d",
+                    cmap="Blues",
+                    xticklabels=labels,
+                    yticklabels=labels,
+                    ax=ax
+                )
+                ax.set_xlabel("Predicții")
+                ax.set_ylabel("Valori reale")
+                ax.set_title("Matrice de confuzie")
                 st.pyplot(fig)
 
+                # ROC AUC + ROC Curve
+                if hasattr(pipeline.named_steps["model"], "predict_proba"):
+                    y_proba = pipeline.predict_proba(X_test)[:, 1]
+
+                    roc_auc = roc_auc_score(y_test, y_proba)
+                    no_skill = np.zeros(len(y_test))
+                    no_skill_auc = roc_auc_score(y_test, no_skill)
+
+                    st.write(f"**Model: ROC AUC = {roc_auc:.3f}**")
+                    st.write(f"No Skill: ROC AUC = {no_skill_auc:.3f}")
+
+                    fpr, tpr, _ = roc_curve(y_test, y_proba)
+                    fpr_ns, tpr_ns, _ = roc_curve(y_test, no_skill)
+
+                    fig, ax = plt.subplots()
+                    ax.plot(fpr, tpr, label=f"Model (AUC={roc_auc:.3f})")
+                    ax.plot(fpr_ns, tpr_ns, linestyle="--", label="No Skill (AUC=0.5)")
+                    ax.set_xlabel("False Positive Rate")
+                    ax.set_ylabel("True Positive Rate")
+                    ax.set_title("ROC Curve")
+                    ax.legend()
+                    st.pyplot(fig)
+
+            # =========================
+            # REGRESIE
+            # =========================
             else:
-                # =========================
-                # Metrici regresie
-                # =========================
                 mae = mean_absolute_error(y_test, preds)
                 rmse = np.sqrt(mean_squared_error(y_test, preds))
                 r2 = r2_score(y_test, preds)
@@ -234,9 +272,6 @@ def run():
                     "R2": r2
                 })
 
-                # =========================
-                # Plot: Actual vs Predicted
-                # =========================
                 fig, ax = plt.subplots()
                 ax.scatter(y_test, preds)
                 ax.plot(
@@ -249,21 +284,10 @@ def run():
                 ax.set_title("Actual vs Predicted")
                 st.pyplot(fig)
 
-                # =========================
-                # Plot: Residuals
-                # =========================
-                residuals = y_test - preds
-
-                fig, ax = plt.subplots()
-                ax.scatter(preds, residuals)
-                ax.axhline(0, linestyle="--")
-                ax.set_xlabel("Predicții")
-                ax.set_ylabel("Reziduuri")
-                ax.set_title("Residuals Plot")
-                st.pyplot(fig)
-
+        # =========================
+        # COMPARARE MODELE
+        # =========================
         results_df = pd.DataFrame(results)
-
         st.subheader("Comparare modele")
         st.dataframe(results_df)
 
