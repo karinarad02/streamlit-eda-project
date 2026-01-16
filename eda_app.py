@@ -184,6 +184,12 @@ def run():
     st.write(f"Rânduri după filtrare: **{len(filtered_df)}**")
     st.dataframe(filtered_df)
 
+    # =========================
+    # SALVARE PENTRU MACHINE LEARNING
+    # =========================
+    st.session_state["data"] = df_clean
+    st.success("Datasetul curățat și pregătit pentru Machine Learning a fost salvat.")
+
     # -------------------------
     # Informații generale dataset
     # -------------------------
