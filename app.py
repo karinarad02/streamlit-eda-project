@@ -1,4 +1,5 @@
 import streamlit as st
+import importlib
 
 st.set_page_config(page_title="EDA + ML App", layout="wide")
 
@@ -8,8 +9,18 @@ page = st.sidebar.radio(
     ["📊 Explorare date (EDA)", "🤖 Machine Learning"]
 )
 
+# =========================
+# EDA
+# =========================
 if page == "📊 Explorare date (EDA)":
     import eda_app
+    importlib.reload(eda_app)  # Forțează reîncărcarea modulului la schimbarea radio
+    eda_app.run()
 
+# =========================
+# ML
+# =========================
 elif page == "🤖 Machine Learning":
     import ml_app
+    importlib.reload(ml_app)
+    ml_app.run()
