@@ -10,7 +10,7 @@ sns.set_theme(style="whitegrid")
 plt.rcParams['figure.figsize'] = (5, 3)
 
 
-def run_eda():
+def run():
     st.title("📊 Aplicație EDA cu Streamlit")
 
     # =========================
