@@ -220,6 +220,9 @@ def run():
                 st.pyplot(fig)
 
             else:
+                # =========================
+                # Metrici regresie
+                # =========================
                 mae = mean_absolute_error(y_test, preds)
                 rmse = np.sqrt(mean_squared_error(y_test, preds))
                 r2 = r2_score(y_test, preds)
@@ -230,6 +233,34 @@ def run():
                     "RMSE": rmse,
                     "R2": r2
                 })
+
+                # =========================
+                # Plot: Actual vs Predicted
+                # =========================
+                fig, ax = plt.subplots()
+                ax.scatter(y_test, preds)
+                ax.plot(
+                    [y_test.min(), y_test.max()],
+                    [y_test.min(), y_test.max()],
+                    linestyle="--"
+                )
+                ax.set_xlabel("Valori reale")
+                ax.set_ylabel("Predicții")
+                ax.set_title("Actual vs Predicted")
+                st.pyplot(fig)
+
+                # =========================
+                # Plot: Residuals
+                # =========================
+                residuals = y_test - preds
+
+                fig, ax = plt.subplots()
+                ax.scatter(preds, residuals)
+                ax.axhline(0, linestyle="--")
+                ax.set_xlabel("Predicții")
+                ax.set_ylabel("Reziduuri")
+                ax.set_title("Residuals Plot")
+                st.pyplot(fig)
 
         results_df = pd.DataFrame(results)
 
